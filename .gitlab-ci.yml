@@ -1,0 +1,16 @@
+stages:
+  - build
+build:
+  stage: build
+  image: python:3.9
+  script:
+    - pip install awscli --upgrade --user    
+    - export PATH="/root/.local/bin:$PATH"
+    - echo $PATH
+    - /root/.local/bin/aws --version
+    - /root/.local/bin/aws s3 sync . s3://$S3_BUCKET --exclude "*" --include "*.html" --include "*.css" --include "*.js"
+    - /root/.local/bin/aws autoscaling start-instance-refresh --auto-scaling-group-name $ASG --strategy Rolling --region $AWS_DEFAULT_REGION
+    - /root/.local/bin/aws s3 cp s3://$S3_BUCKET/ /usr/share/nginx/html/ --recursive --exclude "*" --include "*.html"
+
+  only:
+    - main
